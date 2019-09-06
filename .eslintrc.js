@@ -4,7 +4,8 @@ module.exports = {
         "es6": true,
         "node": true
     },
-    "extends": "standard",
+    "plugins": ["jest"],
+    "extends":["standard", "plugin:jest/recommended"],
     "globals": {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
@@ -13,5 +14,5 @@ module.exports = {
         "ecmaVersion": 2018
     },
     "rules": {
-    }
+    },
 };
