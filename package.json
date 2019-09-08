@@ -15,7 +15,6 @@
     "express": "^4.17.1",
     "mongoose": "^5.6.12"
   },
-  "pre-commit": "yarn lint --fix",
   "devDependencies": {
     "eslint": "^6.3.0",
     "eslint-config-standard": "^14.1.0",
