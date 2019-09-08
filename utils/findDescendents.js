@@ -1,10 +1,14 @@
+const csv = require("csvtojson")
+
 /*
  * Recursively constructs a list of all descendents of a particular node.
  * This solution exploits the pairwise string representation of the models,
  * going one layer down at each recursion until it can find no more children
  */
 const findDescendents = (node, parentArray, childArray, nodesFound = []) => {
-  console.log(node)
+  if (parentArray.indexOf(node) === -1 && childArray.indexOf(node) === -1) {
+    throw `${node} is not a valid node`
+  }
   const children = parentArray
     .map((parent, index) => index)
     .filter(index => parentArray[index] === node)
@@ -16,19 +20,22 @@ const findDescendents = (node, parentArray, childArray, nodesFound = []) => {
   if (children.length === 0) {
     return node
   } else if (children.length === 1) {
-    // This clause avoids prepending single child nodes with themselves, e.g. ['H', 'H']
-    return children.map(child => findDescendents(child, parentArray, childArray, found))[0]
+    return children.map(child => findDescendents(child, parentArray, childArray, found))
   } else {
-    return [...children, ...children.map(child => findDescendents(child, parentArray, childArray, found))]
+    return [...children, ...children.map(child => findDescendents(child, parentArray, childArray, found))].flat()
   }
 }
 
-const splitCSVToChildrenParents = (csv) => {
-  const getColumn = n => csv.map(str => str.split(',')[n])
-  const parents = getColumn(0)
-  const children = getColumn(1)
+const parseCSV = async csvString => {
+  const jsonified = await csv()
+    .fromString(csvString)
+    .then(res => {
+      return res
+    })
+  const parents = jsonified.map(row => row.parentId)
+  const children = jsonified.map(row => row.childId)
   return [parents, children]
 }
 
-module.exports.findDescendents = findDescendents
-module.exports.splitCSVToChildrenParents = splitCSVToChildrenParents
+module.exports = findDescendents
+module.exports.parseCSV = parseCSV
