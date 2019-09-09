@@ -1,15 +1,26 @@
 const request = require('supertest')
 const fs = require('fs')
 const path = require('path')
+
 const apiRouter = require('./apiRouter.js')
 const connectedToDb = require('../db/db.js').connedtedToDb
-const parseCSV = require('../utils/findDescendents').parseCSV
-
+const DataModel = require('../db/model.js')
 
 const testCsv = fs.readFileSync(path.resolve(__dirname, '..', 'data.csv')).toString()
 
 beforeAll(async () => {
   await connectedToDb
+})
+
+afterAll(async () => {
+  const deleteAllModels = new Promise((resolve, reject) => {
+    DataModel.deleteMany({}, {}, (err) => {
+      if (err) throw err
+      console.log('deleted all models after testing')
+      resolve()
+    })
+  })
+  await deleteAllModels
 })
 
 test('should succeed in posting new seed', (done) => {
