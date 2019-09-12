@@ -34,7 +34,7 @@ test('should succeed in posting new seed', (done) => {
 
 test('should get descendents', (done) => {
   return request(apiRouter)
-    .get('/descendents/C')
+    .get('/descendants/C')
     .send()
     .expect('["E","F","H","I"]')
     .end(done)

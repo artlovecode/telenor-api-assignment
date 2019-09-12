@@ -11,9 +11,9 @@ apiRouter.use(bodyParser.text({ extended: false, type: 'text/csv' }))
 apiRouter.post('/seed', async (req, res, next) => {
   try {
     const csvRows = await csv().fromString(req.body)
-    const entry = new DataModel()
-
-    await entry.addManyNodes(csvRows)
+    const entry = new DataModel({
+      childParentPairSchema: csvRows
+    })
 
     entry.save((err) => {
       if (err) return next(err)
@@ -24,13 +24,13 @@ apiRouter.post('/seed', async (req, res, next) => {
   }
 })
 
-apiRouter.get('/descendants/:unitId', async (req, res, next) => {
+apiRouter.get('/descendents/:unitId', async (req, res, next) => {
   try {
     const node = req.params.unitId
     const model = await DataModel.findOne().sort({ createdAt: -1 })
 
-    const descendents = await model.findDescendants(node)
-
+    const descendents = await model.findDescendents(node)
+    console.log(descendents)
     res.send(makeUnique(descendents))
   } catch (e) {
     return next(e)
