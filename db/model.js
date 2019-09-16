@@ -41,22 +41,56 @@ dataModelSchema.methods.addManyNodes = async function (nodePairs) {
   )
 }
 
-dataModelSchema.methods.findDescendants = async function (node, found = []) {
+dataModelSchema.methods.findDescendants = async function (node) {
   const nodes = await this.model('ChildParentPair')
-    .find({ parentId: { $eq: node, $nin: found }, modelId: this._id })
+    .aggregate([
+      { $match: { modelId: this._id, parentId: node } },
+      {
+        $graphLookup: {
+          from: 'childparentpairs',
+          startWith: '$parentId',
+          connectFromField: 'childId',
+          connectToField: 'parentId',
+          as: 'links'
+        }
+      },
+      { $unwind: '$links' },
+      {
+        $sort: {
+          'links.childId': -1
+        }
+      },
+      {
+        $group:
+        {
+          _id: '$parentId',
+          children: { $addToSet: '$links.childId' }
+        }
+      },
+      {
+        $project: {
+          children: 1
+        }
+      }
+    ])
+  const root = nodes[0]
+  const children = root.children
 
-  const parents = nodes.map(n => n.parentId)
-  const children = nodes.map(n => n.childId)
+  return children
 
-  if (children.length > 0) {
-    const recursivelyFoundDescendants = await Promise.all(
-      children.map(async child => this.findDescendants(child, [...found, ...parents]))
-    )
-    return [...children, ...recursivelyFoundDescendants].flat()
-  }
+  // const parents = nodes.map(n => n.parentId)
+  // const children = nodes.map(n => n.childId)
 
-  return node
+  // if (children.length > 0) {
+  //   const recursivelyFoundDescendants = await Promise.all(
+  //     children.map(async child => this.findDescendants(child, [...found, ...parents]))
+  //   )
+  //   return [...children, ...recursivelyFoundDescendants].flat()
+  // }
+
+  // return node
 }
 
 const DataModel = mongoose.model('DataModel', dataModelSchema)
 module.exports = DataModel
+module.exports.ChildParentPair = ChildParentPair

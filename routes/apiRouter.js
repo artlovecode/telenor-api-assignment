@@ -4,7 +4,6 @@ const bodyParser = require('body-parser')
 const csv = require('csvtojson')
 
 const DataModel = require('../db/model.js')
-const makeUnique = require('../utils/makeUnique')
 
 apiRouter.use(bodyParser.text({ extended: false, type: 'text/csv' }))
 
@@ -31,7 +30,7 @@ apiRouter.get('/descendants/:unitId', async (req, res, next) => {
 
     const descendents = await model.findDescendants(node)
 
-    res.send(makeUnique(descendents))
+    res.send(descendents)
   } catch (e) {
     return next(e)
   }
